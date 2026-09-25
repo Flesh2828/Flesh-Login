@@ -115,25 +115,37 @@ function decodeJwt(token: string): GoogleJwtPayload | null {
 }
 
 export default function App() {
-  const [clientId, setClientId] = useState<string>(() => {
-    return localStorage.getItem(STORAGE_GCP_KEY) || INITIAL_GCP_CLIENT_ID;
-  });
-  const [inputClientId, setInputClientId] = useState<string>(clientId);
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const saved = sessionStorage.getItem(STORAGE_SESSION_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch { return null; }
-    }
-    return null;
-  });
+  const [clientId, setClientId] = useState<string>(INITIAL_GCP_CLIENT_ID);
+  const [inputClientId, setInputClientId] = useState<string>(INITIAL_GCP_CLIENT_ID);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [darkMode, setDarkMode] = useState<boolean>(false);
 
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem('theme_pref') === 'dark' || 
-      window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
+  // Baca localStorage hanya saat komponen sudah berjalan di browser (client-side)
+  useEffect(() => {
+    try {
+      const savedClientId = localStorage.getItem(STORAGE_GCP_KEY);
+      if (savedClientId) {
+        setClientId(savedClientId);
+        setInputClientId(savedClientId);
+      }
+
+      const savedUser = localStorage.getItem(STORAGE_SESSION_KEY);
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+
+      const savedTheme = localStorage.getItem('theme_pref');
+      if (savedTheme === 'dark') {
+        setDarkMode(true);
+      }
+    } catch (e) {
+      console.error('Error reading localStorage:', e);
+    }
+  }, []);
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
   const [formLoading, setFormLoading] = useState<boolean>(false);
